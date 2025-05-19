@@ -1,0 +1,18 @@
+body {
+  margin: 0;
+  background-color: #111;
+  padding: 14px;
+}
+
+canvas {
+  display: block;
+  margin: 20px auto;
+  border-radius: 10px;
+  background-color: #000;
+}
+.gameBody{
+ display: flex; 
+ flex-direction: column;
+ gap:24px;
+  align-items: center; 
+}
