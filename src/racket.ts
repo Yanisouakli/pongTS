@@ -1,58 +1,64 @@
-type Direction = "up" | "down" | "stop"
+type Direction = "up" | "down" | "stop";
+
 export class Racket {
-  body: number[];
+  x: number;
+  y: number;
+  width: number;
+  height: number;
   direction: Direction;
+  velocityY:number;
   private keyPressed: Set<string>;
-  constructor(isOpp:boolean,canvas:HTMLCanvasElement) {
-    const xOpp = (canvas.width / 20) - 2 
-    this.body = isOpp? [xOpp,5] :[1, 5]
-    this.direction = "stop"
+  private previousY:number= 0;
+
+  constructor(isOpp: boolean, canvas: HTMLCanvasElement) {
+    this.width = 20;
+    this.height = 100;
+
+    this.x = isOpp ? canvas.width - this.width - 20 : 20; // 20px margin
+    this.y = canvas.height / 2 - this.height / 2;
+
+    this.direction = "stop";
     this.keyPressed = new Set();
-    this.changeDirection()
+    this.velocityY = 0;
+    this.changeDirection();
   }
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = "#fff";
-    ctx.fillRect(this.body[0] * 20, this.body[1] * 20, 20, 100)
+    ctx.fillRect(this.x, this.y, this.width, this.height);
   }
-  move(canvas:HTMLCanvasElement) {
-    const maxY = (canvas.height - 100) / 20;
-    if (this.direction === "up" && this.body[1] > 0) {
-      this.body[1] -= 1;
-    } else if (this.direction === "down" && this.body[1] < maxY) {
-      this.body[1] += 1;
-    }
 
+  move(canvas: HTMLCanvasElement) {
+    const speed = 20;
+    this.previousY =  this.y;
+
+    if (this.direction === "up" && this.y > 0) {
+      this.y -= speed;
+    } else if (this.direction === "down" && this.y + this.height < canvas.height) {
+      this.y += speed;
+    }
+    this.velocityY= (this.y - this.previousY) * 10
   }
 
   changeDirection() {
     window.addEventListener("keydown", (e: KeyboardEvent) => {
-      this.keyPressed.add(e.key)
+      this.keyPressed.add(e.key);
       if (this.keyPressed.has("z") && !this.keyPressed.has("s")) {
         this.direction = "up";
-
       } else if (this.keyPressed.has("s") && !this.keyPressed.has("z")) {
-        this.direction = "down"
+        this.direction = "down";
       }
+    });
 
-    })
     window.addEventListener("keyup", (e: KeyboardEvent) => {
-      this.keyPressed.delete(e.key)
+      this.keyPressed.delete(e.key);
       if (!this.keyPressed.has("z") && !this.keyPressed.has("s")) {
-        this.direction = "stop"
+        this.direction = "stop";
       } else if (this.keyPressed.has("z")) {
-        this.direction = "up"
+        this.direction = "up";
       } else if (this.keyPressed.has("s")) {
-        this.direction = "down"
+        this.direction = "down";
       }
-    })
+    });
   }
 }
-
-
-
-
-
-
-
-
