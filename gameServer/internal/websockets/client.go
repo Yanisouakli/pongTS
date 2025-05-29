@@ -26,7 +26,6 @@ func (c *Client) Read() {
 			//game data handling here
 			//#TODO later:
 		}
-
 	}
 }
 
@@ -36,7 +35,5 @@ func (c *Client) Write() {
 		if err := c.Conn.WriteMessage(websocket.TextMessage, msg); err != nil {
 			log.Println("error writing message to client:", err)
 		}
-
 	}
-
 }
