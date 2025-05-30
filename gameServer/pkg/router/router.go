@@ -3,7 +3,7 @@ package router
 import (
   "github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-  "fmt"
+  "pongServer/internal/handlers"
 )
 
 
@@ -20,9 +20,7 @@ func SetupRouter() *gin.Engine {
 	}))
 
 
-  router.GET("/", func(c *gin.Context){
-    fmt.Println("hello")
-  })
+  router.GET("/generate_game_url", handlers.GetGameUrlHandler)
 
   return router
 }
