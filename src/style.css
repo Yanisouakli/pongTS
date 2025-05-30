@@ -2,6 +2,7 @@ body {
   margin: 0;
   background-color: #111;
   padding: 14px;
+  font-family: sans-serif;
 }
 
 canvas {
@@ -15,4 +16,29 @@ canvas {
  flex-direction: column;
  gap:24px;
 align-items: center; 
+}
+
+
+.create_button{
+  background-color:  red;
+  padding: 10px 12px;
+  border-radius:12px;
+  color:#fff;
+  font-size: 18px;
+  border:1px solid #fff;
+  cursor: pointer;
+}
+.title{
+  font-size: 44px;
+  font-weight: 600;
+  color:#fff;
+}
+
+.game_url{
+  padding:12px;
+  background-color: #181818;
+  color:#fff;
+  font-size: 18px;
+  border-radius: 8px;
+  border:1px solid #fff;
 }
