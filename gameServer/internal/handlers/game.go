@@ -55,10 +55,6 @@ func PlayerInGame(gameID string,userID string,x_pos int64, y_pos int64) error {
 	}
 
 
-  if len(games[gameID].Players) == 2 {
-    return fmt.Errorf("game already full")
-  }
-
   for _,player:= range game.Players {
     if player.PlayerID == userID  {
       return nil

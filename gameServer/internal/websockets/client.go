@@ -22,27 +22,29 @@ func (c *Client) Read() {
 		c.Hub.Unregister <- c
 		c.Conn.Close()
 	}()
-	var isUrlCorrect bool
+
+	var isAuthenticated bool
 
 	for {
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
-			log.Println("error reading event")
+			log.Println("error reading event:", err)
+			break
 		}
+
 		var eventBody map[string]json.RawMessage
 		bodyError := json.Unmarshal(msg, &eventBody)
 		if bodyError != nil {
-			log.Printf("error Unmarshaling eventBody {%v}", bodyError)
+			log.Printf("error Unmarshaling eventBody %v", bodyError)
 			continue
 		}
 
 		var msgType string
-
 		if err := json.Unmarshal(eventBody["type"], &msgType); err != nil {
 			log.Printf("error Unmarshaling msgType %v", err)
 		}
 
-		if isUrlCorrect {
+		if !isAuthenticated {
 			//here i will be checking for the game existence
 			if msgType == "init" {
 				var initEvent models.WsEvent[models.InitEvent]
@@ -76,6 +78,8 @@ func (c *Client) Read() {
 					log.Printf("error marshaling succes event %v", handshakeErr)
 				}
 				c.Hub.Clients[initEvent.Params.PlayerInit.PlayerID].Send <- jsonSuccesHandshake
+
+				isAuthenticated = true
 			}
 		}
 	}

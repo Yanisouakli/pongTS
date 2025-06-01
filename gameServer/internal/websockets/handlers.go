@@ -15,6 +15,12 @@ var upgrader = websocket.Upgrader{
 }
 
 func WebsocketHandler(hub *Hub, c *gin.Context) {
+  id:= c.Query("id")
+
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing id"})
+		return
+	}
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println("failed upgrading connection", err)
@@ -24,8 +30,11 @@ func WebsocketHandler(hub *Hub, c *gin.Context) {
 		Hub:    hub,
 		Conn:   conn,
 		Send:   make(chan []byte, 256), // buffered channel for outgoing msgs
-		UserID: "none",
+		UserID: id,
 	}
+
+	hub.Clients[id] = client 
+	hub.Register <- client
 
 	go client.Read()
 	go client.Write()
