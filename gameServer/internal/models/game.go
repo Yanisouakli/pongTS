@@ -14,14 +14,13 @@ type Player struct {
 	YPos     int64  `json:"y_pos"`
 }
 
-
-type BallState struct{
-	XPos     int64  `json:"x_pos"`
-	YPos     int64  `json:"y_pos"`
+type BallState struct {
+	XPos int64 `json:"x_pos"`
+	YPos int64 `json:"y_pos"`
 }
 
-type GameState struct{
-  Ball    BallState  `json:"ball"`
+type GameState struct {
+	Ball BallState `json:"ball"`
 }
 
 type Game struct {
@@ -34,6 +33,18 @@ type Game struct {
 type LeftEvent struct {
 	UserID string `json:"user_id"`
 	GameID string `json:"game_id"`
+}
+
+type InitEvent struct {
+	GameID string `json:"game_id"`
+  PlayerInit Player  `json:"player_init"`
+}
+
+type SuccesInitEvent struct {
+  Message string `json:"message"`
+}
+type ErrorEvent struct {
+  Error string `json:"error"`
 }
 
 type WsEvent[T any] struct {

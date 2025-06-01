@@ -14,7 +14,7 @@ export class Racket {
     this.width = 20;
     this.height = 100;
 
-    this.x = isOpp ? canvas.width - this.width - 20 : 20; // 20px margin
+    this.x = isOpp ? canvas.width - this.width - 20 : 20;
     this.y = canvas.height / 2 - this.height / 2;
 
     this.direction = "stop";

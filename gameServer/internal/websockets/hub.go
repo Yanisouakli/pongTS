@@ -15,6 +15,15 @@ type Hub struct {
 	mu         sync.RWMutex       // mutex for synchronizing access to the Clients map
 }
 
+func NewHub() *Hub {
+	return &Hub{
+		Clients:    make(map[string]*Client),
+		Broadcast:  make(chan []byte),
+		Register:   make(chan *Client),
+		Unregister: make(chan *Client),
+	}
+}
+
 func (h *Hub) AddClient(userID string, client *Client) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -57,7 +66,18 @@ func (h *Hub) Run() {
 				if len(h.Clients) > 0 {
 					LeftEventMsg := models.WsEvent[models.LeftEvent]{
 						Type: "user_left",
+						Params: models.LeftEvent{
+							UserID: client.UserID,
+							GameID: client.GameID,
+						},
 					}
+					leftMsg, err := json.Marshal(LeftEventMsg)
+					if err != nil {
+						log.Println("error marshalling user left message:", err)
+						continue
+					}
+					client.Send <- leftMsg
+					h.mu.Unlock()
 				}
 			}
 

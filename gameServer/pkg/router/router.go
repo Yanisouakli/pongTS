@@ -1,13 +1,17 @@
 package router
 
 import (
-  "github.com/gin-contrib/cors"
+	"pongServer/internal/handlers"
+	"pongServer/internal/websockets"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-  "pongServer/internal/handlers"
 )
 
 func SetupRouter() *gin.Engine {
   router := gin.Default()
+
+  hub:= websocket.NewHub()
+  go hub.Run()
    
   router.Use(cors.New(cors.Config{
 		AllowOrigins:  []string{"http://localhost:5173"} ,
@@ -20,6 +24,9 @@ func SetupRouter() *gin.Engine {
 
   router.GET("/generate_game_url", handlers.GetGameUrlHandler)
 
+  router.GET("/ws",func(c *gin.Context){
+    websocket.WebsocketHandler(hub,c)
+  })
 
   return router
 }
