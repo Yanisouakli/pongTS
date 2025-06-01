@@ -10,8 +10,8 @@ type Client struct {
 	Hub    *Hub
 	Conn   *websocket.Conn
 	Send   chan []byte
-	UserID string // UserID can be a string or any other type that suits your application
-	GameID string // GameID can be a string or any other type that suits your application
+	UserID string 
+	GameID string
 }
 
 func (c *Client) Read() {

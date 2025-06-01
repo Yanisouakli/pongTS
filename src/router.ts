@@ -8,7 +8,7 @@ export function router() {
   app.innerHTML = ""
   if (path === "/" || path === '/index.html') {
     renderHomePage(app)
-  } else if (path.includes("game")) {
+  } else if (path.includes("gameID")) {
     renderGamePage(app,"id")
   } else {
     app.innerHTML = `<h1>404 - Not Found</h1>`

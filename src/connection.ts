@@ -16,8 +16,8 @@ class WsConnection {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error("Max reconnect attempts reached. Stopping WebSocket.");
       return;
-    }
-
+    } 
+  
     this.socket = new WebSocket(this.url);
 
     this.socket.onopen = () => {

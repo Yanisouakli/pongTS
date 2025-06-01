@@ -6,8 +6,6 @@ import (
   "pongServer/internal/handlers"
 )
 
-
-
 func SetupRouter() *gin.Engine {
   router := gin.Default()
    
@@ -22,7 +20,6 @@ func SetupRouter() *gin.Engine {
 
   router.GET("/generate_game_url", handlers.GetGameUrlHandler)
 
+
   return router
 }
-
-

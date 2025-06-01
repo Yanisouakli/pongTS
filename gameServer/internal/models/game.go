@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type ConnectedEvent struct {
 	UserID string `json:"user_id"`
 	GameID string `json:"game_id"`
@@ -7,14 +9,26 @@ type ConnectedEvent struct {
 
 type Player struct {
 	PlayerID string `json:"player_id"`
-	score    int64  `json:"x_pos"`
+	Score    int64  `json:"score"`
 	XPos     int64  `json:"x_pos"`
 	YPos     int64  `json:"y_pos"`
 }
 
+
+type BallState struct{
+	XPos     int64  `json:"x_pos"`
+	YPos     int64  `json:"y_pos"`
+}
+
+type GameState struct{
+  Ball    BallState  `json:"ball"`
+}
+
 type Game struct {
-	GameID  string   `json:"game_id"`
-	Players []Player `json:"players"`
+	GameID    string    `json:"game_id"`
+	Players   []Player  `json:"players"`
+	CreatedAt time.Time `json:"created_at"`
+	State     GameState `json:"game_state"`
 }
 
 type LeftEvent struct {

@@ -20,7 +20,7 @@ align-items: center;
 
 
 .create_button{
-  background-color:  red;
+  background-color:  #344e41;
   padding: 10px 12px;
   border-radius:12px;
   color:#fff;
@@ -34,11 +34,31 @@ align-items: center;
   color:#fff;
 }
 
-.game_url{
-  padding:12px;
-  background-color: #181818;
+
+.link_container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap:12px;
   color:#fff;
   font-size: 18px;
-  border-radius: 8px;
-  border:1px solid #fff;
 }
+
+.link{
+  padding: 8px 12px;
+  border-radius:12px ;
+  font-size: 20px;
+  max-width: 500px;
+  overflow-x: auto;
+  color:#fff;
+  background-color: #3a5a40;
+
+}
+
+
+
+
+
+
+
