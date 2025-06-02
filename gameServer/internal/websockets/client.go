@@ -5,7 +5,6 @@ import (
 	"log"
 	"pongServer/internal/models"
 	"pongServer/internal/services"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -63,7 +62,7 @@ func (c *Client) Read() {
 				jsonErrorHandshake, _ := json.Marshal(errorHandshake)
 				if err := services.CheckConnectedUser(initEvent.Params.GameID, initEvent.Params.PlayerInit.PlayerID, initEvent.Params.PlayerInit.XPos, initEvent.Params.PlayerInit.YPos); err != nil {
 					log.Printf("error while joining the game %v", err)
-					c.Hub.Clients[initEvent.Params.PlayerInit.PlayerID].Send <- jsonErrorHandshake
+					c.Send <- jsonErrorHandshake
 				}
 				succesHandshake := models.WsEvent[models.SuccesInitEvent]{
 					Type: "init",
@@ -77,7 +76,7 @@ func (c *Client) Read() {
 				if handshakeErr != nil {
 					log.Printf("error marshaling succes event %v", handshakeErr)
 				}
-				c.Hub.Clients[initEvent.Params.PlayerInit.PlayerID].Send <- jsonSuccesHandshake
+				c.Send <- jsonSuccesHandshake
 
 				isAuthenticated = true
 			}

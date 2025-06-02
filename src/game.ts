@@ -5,7 +5,7 @@ import WsConnection from "./connection"
 
 export function renderGamePage(root: HTMLElement, gameID: string) {
   const playerId = "player-1234";
-  const ws = new WsConnection(`http://localhost:8080/ws?id=${playerId}`);
+  const ws = new WsConnection(`ws://localhost:8080/ws?id=${playerId}`);
 
   ws.onOpen(() => {
     console.log("connectionn established")
