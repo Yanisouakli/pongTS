@@ -9,11 +9,11 @@ import (
 )
 
 type Client struct {
-	Hub                    *Hub
-	Conn                   *websocket.Conn
-	Send                   chan []byte
-	UserID                 string
-	userConnectedn, GameID string
+	Hub    *Hub
+	Conn   *websocket.Conn
+	Send   chan []byte
+	UserID string
+	GameID string
 }
 
 func (c *Client) Read() {

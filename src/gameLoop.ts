@@ -1,4 +1,5 @@
 import { Ball } from './ball';
+import WsConnection from './connection';
 import { Racket } from './racket';
 import { collisionWithRacket, goalHandler } from './utils';
 
@@ -9,9 +10,37 @@ export function startGameLoop(canvas: HTMLCanvasElement) {
   const MyRacket = new Racket(false, canvas);
   const OpRacket = new Racket(true, canvas);
   const ball = new Ball(canvas);
-
+  const gameID = localStorage.getItem("game_id")  as string
+  if(!gameID){
+    console.error("[game_id] NOT FOUND")
+  }
   let lastTime = 0;
   let pausedUntil = performance.now() + 2000;
+
+  const playerId = "player-1234";
+  const ws = new WsConnection(`ws://localhost:8080/ws?id=${playerId}`);
+
+  ws.onOpen(() => {
+    console.log("connectionn established")
+    ws.send({
+      type: "init",
+      params: {
+        game_id: gameID,
+        player_init: {
+          player_id: "string-id",
+          score: 0,
+          x_pos: MyRacket.x,
+          y_pos: MyRacket.y,
+        },
+        ball_init:{
+          x_pos: ball.x,
+          y_pos: ball.y,
+        }
+      },
+    });
+  })
+
+
 
   function gameLoop(time: number) {
     const deltaTime = (time - lastTime) / 1000;
@@ -21,6 +50,8 @@ export function startGameLoop(canvas: HTMLCanvasElement) {
     MyRacket.move(canvas);
     MyRacket.draw(ctx!!);
     OpRacket.draw(ctx!!);
+    
+
 
     if (time >= pausedUntil) {
       ball.move(canvas, deltaTime);

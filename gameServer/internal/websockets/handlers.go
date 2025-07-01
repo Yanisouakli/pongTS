@@ -15,7 +15,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func WebsocketHandler(hub *Hub, c *gin.Context) {
-  id:= c.Query("id")
+	id := c.Query("id")
 
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing id"})
@@ -33,7 +33,7 @@ func WebsocketHandler(hub *Hub, c *gin.Context) {
 		UserID: id,
 	}
 
-	hub.Clients[id] = client 
+	hub.Clients[id] = client
 	hub.Register <- client
 
 	go client.Read()

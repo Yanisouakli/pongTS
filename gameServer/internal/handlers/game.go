@@ -5,9 +5,7 @@ import (
 	"pongServer/internal/models"
 	"sync"
 	"time"
-
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -30,6 +28,7 @@ func GetGameUrlHandler(c *gin.Context) {
 		CreatedAt: time.Now(),
 		State:     models.GameState{},
 	}
+
 	gamesMu.Unlock()
 	c.JSON(http.StatusOK, gin.H{"GameID": GameID})
 }
@@ -45,7 +44,6 @@ func DoesGameExist(gameID string) bool {
 }
 
 func PlayerInGame(gameID string,userID string,x_pos int64, y_pos int64) error {
-
   gamesMu.Lock()
 	defer gamesMu.Unlock()
 
@@ -53,7 +51,9 @@ func PlayerInGame(gameID string,userID string,x_pos int64, y_pos int64) error {
 	if !ok {
 		return fmt.Errorf("game not found")
 	}
+  //check if ther's already an enregestred player 
 
+//
 
   for _,player:= range game.Players {
     if player.PlayerID == userID  {
@@ -67,11 +67,13 @@ func PlayerInGame(gameID string,userID string,x_pos int64, y_pos int64) error {
     XPos  :x_pos,
     YPos  :y_pos,    
   }
-   
+ 
   game.Players = append(game.Players,newPlayer)
 
   games[gameID] = game
 
   return nil
 }
+
+
 

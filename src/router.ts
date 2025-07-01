@@ -10,7 +10,8 @@ export function router() {
     renderHomePage(app)
   } else if (path.includes("gameID")) {
     const gameID = path.split("=")[1]
-    renderGamePage(app, gameID)
+    localStorage.setItem("game_id",gameID)
+    renderGamePage(app)
   } else {
     app.innerHTML = `<h1>404 - Not Found</h1>`
 

@@ -36,15 +36,16 @@ type LeftEvent struct {
 }
 
 type InitEvent struct {
-	GameID string `json:"game_id"`
-  PlayerInit Player  `json:"player_init"`
+	GameID     string    `json:"game_id"`
+	PlayerInit Player    `json:"player_init"`
+	BallInit   BallState `json:"ball_init"`
 }
 
 type SuccesInitEvent struct {
-  Message string `json:"message"`
+	Message string `json:"message"`
 }
 type ErrorEvent struct {
-  Error string `json:"error"`
+	Error string `json:"error"`
 }
 
 type WsEvent[T any] struct {
