@@ -3,8 +3,10 @@ package websocket
 import (
 	"encoding/json"
 	"log"
+	"pongServer/internal/handlers"
 	"pongServer/internal/models"
 	"pongServer/internal/services"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -14,6 +16,7 @@ type Client struct {
 	Send   chan []byte
 	UserID string
 	GameID string
+  Gm    *handlers.GameManager
 }
 
 func (c *Client) Read() {
@@ -60,7 +63,7 @@ func (c *Client) Read() {
 				}
 
 				jsonErrorHandshake, _ := json.Marshal(errorHandshake)
-				if err := services.CheckConnectedUser(initEvent.Params.GameID, initEvent.Params.PlayerInit.PlayerID, initEvent.Params.PlayerInit.XPos, initEvent.Params.PlayerInit.YPos); err != nil {
+				if err := services.CheckConnectedUser(initEvent.Params.GameID, initEvent.Params.PlayerInit.PlayerID, initEvent.Params.PlayerInit.XPos, initEvent.Params.PlayerInit.YPos,c.Gm); err != nil {
 					log.Printf("error while joining the game %v", err)
 					c.Send <- jsonErrorHandshake
 				}
@@ -80,7 +83,19 @@ func (c *Client) Read() {
 
 				isAuthenticated = true
 			}
+
 		}
+    //
+    switch msgType {
+    case "input":
+        
+      
+
+      
+    case "game_over":
+
+    }
+
 	}
 }
 
@@ -92,3 +107,13 @@ func (c *Client) Write() {
 		}
 	}
 }
+
+
+
+
+
+
+
+
+
+

@@ -12,11 +12,15 @@ type Player struct {
 	Score    int64  `json:"score"`
 	XPos     int64  `json:"x_pos"`
 	YPos     int64  `json:"y_pos"`
+  Height int64 `json:"height"`
+  Width int64 `json:"width"`
 }
 
 type BallState struct {
 	XPos int64 `json:"x_pos"`
 	YPos int64 `json:"y_pos"`
+  Height int64 `json:"height"`
+  Width int64 `json:"width"`
 }
 
 type GameState struct {
@@ -51,4 +55,9 @@ type ErrorEvent struct {
 type WsEvent[T any] struct {
 	Type   string `json:"type"`
 	Params T      `json:"params"`
+}
+
+type GoalReturn struct {
+	Goal   bool   `json:"goal"`
+	Player string `json:"player"`
 }

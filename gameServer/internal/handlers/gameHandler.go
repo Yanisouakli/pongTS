@@ -2,78 +2,80 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"net/http"
 	"pongServer/internal/models"
 	"sync"
 	"time"
-	"net/http"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 
-var (
-	games   = make(map[string]models.Game)
+type GameManager struct {
+	games   map[string]models.Game
 	gamesMu sync.RWMutex
-)
+}
 
-func GetGameUrlHandler(c *gin.Context) {
+func NewGameManager() *GameManager{
+  return &GameManager{
+      games:make(map[string]models.Game),
+  } 
+}
+
+func (gm *GameManager) GetGameUrlHandler(c *gin.Context) {
 	GameID := uuid.New().String()
 	players := make([]models.Player, 2)
 
-	gamesMu.Lock()
+	gm.gamesMu.Lock()
 
-	games[GameID] = models.Game{
+	gm.games[GameID] = models.Game{
 		GameID:    GameID,
 		Players:   players,
 		CreatedAt: time.Now(),
 		State:     models.GameState{},
 	}
 
-	gamesMu.Unlock()
+	gm.gamesMu.Unlock()
 	c.JSON(http.StatusOK, gin.H{"GameID": GameID})
 }
 
-func DoesGameExist(gameID string) bool {
-	gamesMu.Lock()
-  defer gamesMu.Unlock()
-	_, ok := games[gameID]
+func (gm *GameManager) DoesGameExist(gameID string) bool {
+	gm.gamesMu.Lock()
+	defer gm.gamesMu.Unlock()
+	_, ok := gm.games[gameID]
 	if !ok {
 		return false
 	}
 	return true
 }
 
-func PlayerInGame(gameID string,userID string,x_pos int64, y_pos int64) error {
-  gamesMu.Lock()
-	defer gamesMu.Unlock()
+func (gm *GameManager) PlayerInGame(gameID string, userID string, x_pos int64, y_pos int64) error {
+	gm.gamesMu.Lock()
+	defer gm.gamesMu.Unlock()
 
-	game, ok := games[gameID]
+	game, ok := gm.games[gameID]
 	if !ok {
 		return fmt.Errorf("game not found")
 	}
-  //check if ther's already an enregestred player 
 
-//
+	for _, player := range game.Players {
+		if player.PlayerID == userID {
+			return nil
+		}
+	}
 
-  for _,player:= range game.Players {
-    if player.PlayerID == userID  {
-      return nil
-    }
-  }
+	newPlayer := models.Player{
+		PlayerID: userID,
+		Score:    0,
+		XPos:     x_pos,
+		YPos:     y_pos,
+	}
 
-  newPlayer:= models.Player{
-    PlayerID:userID, 
-    Score : 0,
-    XPos  :x_pos,
-    YPos  :y_pos,    
-  }
- 
-  game.Players = append(game.Players,newPlayer)
+	game.Players = append(game.Players, newPlayer)
 
-  games[gameID] = game
+	gm.games[gameID] = game
 
-  return nil
+	return nil
 }
-
 
 
