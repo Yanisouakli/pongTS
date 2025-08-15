@@ -40,6 +40,16 @@ export function startGameLoop(canvas: HTMLCanvasElement) {
     });
   })
 
+  ws.onMessage((msg)=>{
+    if (msg.type === "succes-handshake") {
+      ws.send({
+        type:"ack-start-game",
+        params: {
+         no_params:"none"
+        }
+      })
+    }
+  })
 
 
   function gameLoop(time: number) {

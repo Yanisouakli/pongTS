@@ -2,12 +2,12 @@ package websocket
 
 import (
 	"encoding/json"
+	"github.com/gorilla/websocket"
 	"log"
 	"pongServer/internal/handlers"
 	"pongServer/internal/models"
 	"pongServer/internal/services"
-
-	"github.com/gorilla/websocket"
+	"time"
 )
 
 type Client struct {
@@ -16,7 +16,7 @@ type Client struct {
 	Send   chan []byte
 	UserID string
 	GameID string
-  Gm    *handlers.GameManager
+	Gm     *handlers.GameManager
 }
 
 func (c *Client) Read() {
@@ -63,12 +63,12 @@ func (c *Client) Read() {
 				}
 
 				jsonErrorHandshake, _ := json.Marshal(errorHandshake)
-				if err := services.CheckConnectedUser(initEvent.Params.GameID, initEvent.Params.PlayerInit.PlayerID, initEvent.Params.PlayerInit.XPos, initEvent.Params.PlayerInit.YPos,c.Gm); err != nil {
+				if err := services.CheckConnectedUser(initEvent.Params.GameID, initEvent.Params.PlayerInit.PlayerID, initEvent.Params.PlayerInit.XPos, initEvent.Params.PlayerInit.YPos, c.Gm); err != nil {
 					log.Printf("error while joining the game %v", err)
 					c.Send <- jsonErrorHandshake
 				}
 				succesHandshake := models.WsEvent[models.SuccesInitEvent]{
-					Type: "init",
+					Type: "succes-handshake",
 					Params: models.SuccesInitEvent{
 						Message: "succes handshake",
 					},
@@ -85,16 +85,43 @@ func (c *Client) Read() {
 			}
 
 		}
-    //
-    switch msgType {
-    case "input":
-        
-      
+		//
+		switch msgType {
+		case "ack-start-game":
+			tick := time.Tick(16 * time.Millisecond)
+			go func() {
+				for {
+					select {
+					case <-tick:
+						var UpdatesBody models.UpdatesBody
+						UpdatesBody = models.UpdatesBody{
+							Update: "update body",
+						}
+						jsonUpdate, err := json.MarshalIndent(UpdatesBody, "", " ")
+						if err != nil {
+							log.Fatalf("error while marshalling json %v", err)
+						}
+						c.Send <- jsonUpdate
+					}
+				}
+			}()
 
-      
-    case "game_over":
+		case "input":
+      //acccepts input and updates gameState
+      var InputEvent models.WsEvent[models.InputEvent]
 
-    }
+      err := json.Unmarshal(msg,&InputEvent)
+      if err!= nil {
+        log.Fatalf("error while marshaling json %v",err)
+      }
+      
+      
+       
+            
+
+		case "game_over":
+
+		}
 
 	}
 }
@@ -107,13 +134,3 @@ func (c *Client) Write() {
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
