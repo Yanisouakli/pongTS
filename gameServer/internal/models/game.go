@@ -9,25 +9,27 @@ type ConnectedEvent struct {
 
 type Player struct {
 	PlayerID  string `json:"player_id"`
-	Score     int64  `json:"score"`
 	XPos      int64  `json:"x_pos"`
 	YPos      int64  `json:"y_pos"`
-	Height    int64  `json:"height"`
-	Width     int64  `json:"width"`
 	Direction string `json:"direction"`
-	PreviousY int64  `json:"previousY"`
-	VelocityY int64  `json:"velocityY"`
+	PreviousY int64  `json:"previous_y"`
+	VelocityY int64  `json:"velocity_y"`
 }
 
 type BallState struct {
-	XPos   int64 `json:"x_pos"`
-	YPos   int64 `json:"y_pos"`
-	Height int64 `json:"height"`
-	Width  int64 `json:"width"`
+	XPos      int64 `json:"x_pos"`
+	YPos      int64 `json:"y_pos"`
+	Height    int64 `json:"height"`
+	Width     int64 `json:"width"`
+	VelocityY int64 `json:"velocity_y"`
+	VelocityX int64 `json:"velocity_x"`
 }
 
 type GameState struct {
-	Ball BallState `json:"ball"`
+	Ball   BallState     `json:"ball"`
+	Score  int64         `json:"score"`
+	Timer  time.Duration `json:"timer"`
+	Canvas Canvas        `json:"canvas"`
 }
 
 type Game struct {
@@ -42,10 +44,22 @@ type LeftEvent struct {
 	GameID string `json:"game_id"`
 }
 
+type Canvas struct {
+	CanvasWidth  int64 `json:"canvas_width"`
+	CanvasHeight int64 `json:"canvas_height"`
+}
+
 type InitEvent struct {
+	GameID     string `json:"game_id"`
+	PlayerInit Player `json:"player_init"`
+	CanvasInit Canvas `json:"canvas"`
+}
+
+type StartEvent struct {
 	GameID     string    `json:"game_id"`
 	PlayerInit Player    `json:"player_init"`
-	BallInit   BallState `json:"ball_init"`
+	CanvasInit Canvas    `json:"canvas"`
+	Ball       BallState `json:"ball"`
 }
 
 type SuccesInitEvent struct {

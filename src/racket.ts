@@ -45,20 +45,8 @@ export class Racket {
     window.addEventListener("keydown", (e: KeyboardEvent) => {
       this.keyPressed.add(e.key);
       if (this.keyPressed.has("z") && !this.keyPressed.has("s")) {
-        ws.send({
-          type:"input",
-          params:{
-            key:"up"
-          }
-        })
         this.direction = "up";
       } else if (this.keyPressed.has("s") && !this.keyPressed.has("z")) {
-        ws.send({
-          type:"input",
-          params:{
-            key:"down"
-          }
-        })
         this.direction = "down";
       }
     });
@@ -69,8 +57,22 @@ export class Racket {
         this.direction = "stop";
       } else if (this.keyPressed.has("z")) {
         this.direction = "up";
+        console.log("input abouit to be sent")
+        ws.send({
+          type:"input",
+          params:{
+            key:"up"
+          }
+        })
       } else if (this.keyPressed.has("s")) {
+        console.log("input abouit to be sent")
         this.direction = "down";
+        ws.send({
+          type:"input",
+          params:{
+            key:"down"
+          }
+        })
       }
     });
   }

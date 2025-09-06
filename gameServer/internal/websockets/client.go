@@ -78,6 +78,7 @@ func (c *Client) Read() {
 
 				if handshakeErr != nil {
 					log.Printf("error marshaling succes event %v", handshakeErr)
+					return
 				}
 				c.Send <- jsonSuccesHandshake
 
@@ -89,6 +90,7 @@ func (c *Client) Read() {
 		switch msgType {
 		case "ack-start-game":
 			tick := time.Tick(16 * time.Millisecond)
+
 			go func() {
 				for {
 					select {
@@ -100,6 +102,7 @@ func (c *Client) Read() {
 						jsonUpdate, err := json.MarshalIndent(UpdatesBody, "", " ")
 						if err != nil {
 							log.Fatalf("error while marshalling json %v", err)
+							return
 						}
 						c.Send <- jsonUpdate
 					}
@@ -107,17 +110,14 @@ func (c *Client) Read() {
 			}()
 
 		case "input":
-      //acccepts input and updates gameState
-      var InputEvent models.WsEvent[models.InputEvent]
+			//acccepts input and updates gameState
+			var InputEvent models.WsEvent[models.InputEvent]
 
-      err := json.Unmarshal(msg,&InputEvent)
-      if err!= nil {
-        log.Fatalf("error while marshaling json %v",err)
-      }
-      
-      
-       
-            
+			err := json.Unmarshal(msg, &InputEvent)
+			if err != nil {
+				log.Fatalf("error while marshaling json %v", err)
+			}
+			//based on the input update the player y position and calculate the ball position
 
 		case "game_over":
 

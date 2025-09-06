@@ -66,7 +66,6 @@ func (gm *GameManager) PlayerInGame(gameID string, userID string, x_pos int64, y
 
 	newPlayer := models.Player{
 		PlayerID: userID,
-		Score:    0,
 		XPos:     x_pos,
 		YPos:     y_pos,
 	}
@@ -79,3 +78,18 @@ func (gm *GameManager) PlayerInGame(gameID string, userID string, x_pos int64, y
 }
 
 
+func (gm *GameManager) InitGameState(gameID string,ball models.BallState,players models.Player,canvas models.Canvas ) error {
+  gm.gamesMu.Lock()
+  defer gm.gamesMu.Unlock()
+  
+  game,ok:= gm.games[gameID]
+  if !ok{
+    return fmt.Errorf("geme not found")
+  }
+  game.State.Ball = ball
+  game.State.Canvas = canvas
+  
+  gm.games[gameID] = game
+
+  return nil
+}

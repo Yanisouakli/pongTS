@@ -11,7 +11,6 @@ func collisionWithRacket(ball models.BallState,racket models.Player) bool {
     ball.XPos + ball.Width > racket.XPos &&
     ball.YPos <= racket.YPos + racket.Height &&
     ball.YPos + ball.Height > racket.YPos )
-
 }
 
 
@@ -32,3 +31,6 @@ func goalHandler(ball models.BallState, width int64  ) models.GoalReturn {
     Player: "none",
   }
 }
+
+
+

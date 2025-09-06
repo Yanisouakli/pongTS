@@ -7,8 +7,6 @@ export function startGameLoop(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("canvas not supported");
 
-  const MyRacket = new Racket(false, canvas);
-  const OpRacket = new Racket(true, canvas);
   const ball = new Ball(canvas);
   const gameID = localStorage.getItem("game_id")  as string
   if(!gameID){
@@ -19,6 +17,9 @@ export function startGameLoop(canvas: HTMLCanvasElement) {
 
   const playerId = "player-1234";
   const ws = new WsConnection(`ws://localhost:8080/ws?id=${playerId}`);
+
+  const MyRacket = new Racket(false, canvas,ws);
+  const OpRacket = new Racket(true, canvas,ws);
 
   ws.onOpen(() => {
     console.log("connectionn established")
@@ -32,9 +33,9 @@ export function startGameLoop(canvas: HTMLCanvasElement) {
           x_pos: MyRacket.x,
           y_pos: MyRacket.y,
         },
-        ball_init:{
-          x_pos: ball.x,
-          y_pos: ball.y,
+        canvas:{
+          canvas_width: canvas.width,
+          canvas_height: canvas.height,
         }
       },
     });
@@ -42,6 +43,7 @@ export function startGameLoop(canvas: HTMLCanvasElement) {
 
   ws.onMessage((msg)=>{
     if (msg.type === "succes-handshake") {
+      console.log("succes handshalke")
       ws.send({
         type:"ack-start-game",
         params: {
