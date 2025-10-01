@@ -41,38 +41,40 @@ export class Racket {
     this.velocityY = (this.y - this.previousY) * 10
   }
 
-  changeDirection(ws:WsConnection) {
+  changeDirection(ws: WsConnection) {
     window.addEventListener("keydown", (e: KeyboardEvent) => {
       this.keyPressed.add(e.key);
+
       if (this.keyPressed.has("z") && !this.keyPressed.has("s")) {
-        this.direction = "up";
+        if (this.direction !== "up") {   // send only if direction actually changed
+          this.direction = "up";
+          ws.send({
+            type: "input",
+            params: { key: "up" }
+          });
+        }
       } else if (this.keyPressed.has("s") && !this.keyPressed.has("z")) {
-        this.direction = "down";
+        if (this.direction !== "down") {
+          this.direction = "down";
+          ws.send({
+            type: "input",
+            params: { key: "down" }
+          });
+        }
       }
     });
 
     window.addEventListener("keyup", (e: KeyboardEvent) => {
       this.keyPressed.delete(e.key);
+
       if (!this.keyPressed.has("z") && !this.keyPressed.has("s")) {
-        this.direction = "stop";
-      } else if (this.keyPressed.has("z")) {
-        this.direction = "up";
-        console.log("input abouit to be sent")
-        ws.send({
-          type:"input",
-          params:{
-            key:"up"
-          }
-        })
-      } else if (this.keyPressed.has("s")) {
-        console.log("input abouit to be sent")
-        this.direction = "down";
-        ws.send({
-          type:"input",
-          params:{
-            key:"down"
-          }
-        })
+        if (this.direction !== "stop") {
+          this.direction = "stop";
+          ws.send({
+            type: "input",
+            params: { key: "stop" }
+          });
+        }
       }
     });
   }

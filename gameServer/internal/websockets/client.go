@@ -117,6 +117,8 @@ func (c *Client) Read() {
 			if err != nil {
 				log.Fatalf("error while marshaling json %v", err)
 			}
+      
+      
 			//based on the input update the player y position and calculate the ball position
 
 		case "game_over":
