@@ -2,12 +2,13 @@ package websocket
 
 import (
 	"encoding/json"
-	"github.com/gorilla/websocket"
 	"log"
 	"pongServer/internal/handlers"
 	"pongServer/internal/models"
 	"pongServer/internal/services"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 type Client struct {
@@ -17,10 +18,15 @@ type Client struct {
 	UserID string
 	GameID string
 	Gm     *handlers.GameManager
+	Ticker *time.Ticker
 }
 
 func (c *Client) Read() {
 	defer func() {
+		if c.Ticker != nil {
+			c.Ticker.Stop()
+			c.Ticker = nil
+		}
 		c.Hub.Unregister <- c
 		c.Conn.Close()
 	}()
@@ -54,6 +60,7 @@ func (c *Client) Read() {
 					log.Printf("invalid init json %v", err)
 					continue
 				}
+				c.GameID = initEvent.Params.GameID
 
 				errorHandshake := models.WsEvent[models.ErrorEvent]{
 					Type: "error",
@@ -89,22 +96,33 @@ func (c *Client) Read() {
 		//
 		switch msgType {
 		case "ack-start-game":
-			tick := time.Tick(16 * time.Millisecond)
+			if c.Ticker == nil {
+				c.Ticker = time.NewTicker(16 * time.Millisecond)
 
-			go func() {
-				for range tick {
-					var UpdatesBody models.UpdatesBody
-					UpdatesBody = models.UpdatesBody{
-						Update: "update body",
+				go func() {
+					for range c.Ticker.C {
+						game, ok := c.Gm.GetGame(c.GameID)
+						if !ok {
+							log.Printf("error while getting the game data %v", err)
+							continue
+						}
+						UpdatesBody := models.UpdatesBody{
+							Type:    "updates",
+							Players: game.Players,
+							Ball:    game.State.Ball,
+							Score:   game.State.Score,
+							Timer:   game.State.Timer,
+							Canvas:  game.State.Canvas,
+						}
+						jsonUpdate, err := json.MarshalIndent(UpdatesBody, "", " ")
+						if err != nil {
+							log.Printf("error while marshalling json %v", err)
+							continue
+						}
+						c.Send <- jsonUpdate
 					}
-					jsonUpdate, err := json.MarshalIndent(UpdatesBody, "", " ")
-					if err != nil {
-						log.Fatalf("error while marshalling json %v", err)
-						return
-					}
-					c.Send <- jsonUpdate
-				}
-			}()
+				}()
+			}
 
 		case "input":
 			//acccepts input and updates gameState
@@ -112,16 +130,19 @@ func (c *Client) Read() {
 
 			err := json.Unmarshal(msg, &InputEvent)
 			if err != nil {
-				log.Fatalf("error while marshaling json %v", err)
+				log.Printf("error while marshaling json %v", err)
+				continue
 			}
-			//based on the input update the player y position and calculate the ball position
-
 			if err := c.Gm.UpdateGame(InputEvent); err != nil {
-				log.Fatalf("error while updating the game data %v", err)
-
+				log.Printf("error while updating the game data %v", err)
+				continue
 			}
 
 		case "game_over":
+			if c.Ticker != nil {
+				c.Ticker.Stop()
+				c.Ticker = nil
+			}
 
 		}
 

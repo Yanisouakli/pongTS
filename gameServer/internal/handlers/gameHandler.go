@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
 	"pongServer/internal/models"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type GameManager struct {
@@ -64,9 +65,13 @@ func (gm *GameManager) PlayerInGame(gameID string, userID string, x_pos int64, y
 	}
 
 	newPlayer := models.Player{
-		PlayerID: userID,
-		XPos:     x_pos,
-		YPos:     y_pos,
+		PlayerID:  userID,
+		XPos:      x_pos,
+		YPos:      y_pos,
+		Direction: "stop",
+		VelocityY: 0,
+		Width:     20,
+		Height:    100,
 	}
 
 	game.Players = append(game.Players, newPlayer)
@@ -93,6 +98,77 @@ func (gm *GameManager) InitGameState(gameID string, ball models.BallState, playe
 }
 
 func (gm *GameManager) UpdateGame(input models.WsEvent[models.InputEvent]) error {
+	gm.gamesMu.Lock()
+	defer gm.gamesMu.Unlock()
 
-	return nil
+	game, ok := gm.games[input.Params.GameID]
+	if !ok {
+		return fmt.Errorf("game not found")
+	}
+
+	speed := int64(20)
+	canvasH := game.State.Canvas.CanvasHeight
+
+	for i := range game.Players {
+		if game.Players[i].PlayerID == input.Params.PlayerID {
+			p := &game.Players[i]
+
+			// Direction from key
+			switch input.Params.Key {
+			case "up", "z":
+				p.Direction = "up"
+			case "down", "s":
+				p.Direction = "down"
+			case "stop", "none", "":
+				p.Direction = "stop"
+			}
+
+			// Move with bounds
+			p.PreviousY = p.YPos
+			if p.Direction == "up" && p.YPos > 0 {
+				if p.YPos-speed < 0 {
+					p.YPos = 0
+				} else {
+					p.YPos -= speed
+				}
+			} else if p.Direction == "down" && p.YPos+p.Height < canvasH {
+				if p.YPos+p.Height+speed > canvasH {
+					p.YPos = canvasH - p.Height
+				} else {
+					p.YPos += speed
+				}
+			}
+
+			// Velocity
+			p.VelocityY = (p.YPos - p.PreviousY) * 10
+
+			gm.games[input.Params.GameID] = game
+			return nil
+		}
+	}
+
+	return fmt.Errorf("player not found")
+}
+
+func (gm *GameManager) GetGame(gameID string) (models.Game, bool) {
+	gm.gamesMu.RLock()
+	defer gm.gamesMu.RUnlock()
+	g, ok := gm.games[gameID]
+	return g, ok
+}
+
+func (gm *GameManager) SetGame(gameID string, g models.Game) {
+	gm.gamesMu.Lock()
+	defer gm.gamesMu.Unlock()
+	gm.games[gameID] = g
+}
+
+func (gm *GameManager) GetGamesSnapshot() map[string]models.Game {
+	gm.gamesMu.RLock()
+	defer gm.gamesMu.RUnlock()
+	out := make(map[string]models.Game, len(gm.games))
+	for k, v := range gm.games {
+		out[k] = v
+	}
+	return out
 }

@@ -87,5 +87,10 @@ type GoalReturn struct {
 }
 
 type UpdatesBody struct {
-	Update string `json:"updated"`
+	Type    string        `json:"type"`
+	Players []Player      `json:"players"`
+	Ball    BallState     `json:"ball"`
+	Score   int64         `json:"score"`
+	Timer   time.Duration `json:"timer"`
+	Canvas  Canvas        `json:"canvas"`
 }
