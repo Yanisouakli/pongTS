@@ -92,20 +92,17 @@ func (c *Client) Read() {
 			tick := time.Tick(16 * time.Millisecond)
 
 			go func() {
-				for {
-					select {
-					case <-tick:
-						var UpdatesBody models.UpdatesBody
-						UpdatesBody = models.UpdatesBody{
-							Update: "update body",
-						}
-						jsonUpdate, err := json.MarshalIndent(UpdatesBody, "", " ")
-						if err != nil {
-							log.Fatalf("error while marshalling json %v", err)
-							return
-						}
-						c.Send <- jsonUpdate
+				for range tick {
+					var UpdatesBody models.UpdatesBody
+					UpdatesBody = models.UpdatesBody{
+						Update: "update body",
 					}
+					jsonUpdate, err := json.MarshalIndent(UpdatesBody, "", " ")
+					if err != nil {
+						log.Fatalf("error while marshalling json %v", err)
+						return
+					}
+					c.Send <- jsonUpdate
 				}
 			}()
 
@@ -117,9 +114,12 @@ func (c *Client) Read() {
 			if err != nil {
 				log.Fatalf("error while marshaling json %v", err)
 			}
-      
-      
 			//based on the input update the player y position and calculate the ball position
+
+			if err := c.Gm.UpdateGame(InputEvent); err != nil {
+				log.Fatalf("error while updating the game data %v", err)
+
+			}
 
 		case "game_over":
 

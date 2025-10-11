@@ -14,6 +14,8 @@ type Player struct {
 	Direction string `json:"direction"`
 	PreviousY int64  `json:"previous_y"`
 	VelocityY int64  `json:"velocity_y"`
+	Width     int64  `json:"width"`
+	Height    int64  `json:"height"`
 }
 
 type BallState struct {

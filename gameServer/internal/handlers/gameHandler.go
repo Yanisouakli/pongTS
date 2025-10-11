@@ -10,16 +10,15 @@ import (
 	"time"
 )
 
-
 type GameManager struct {
 	games   map[string]models.Game
 	gamesMu sync.RWMutex
 }
 
-func NewGameManager() *GameManager{
-  return &GameManager{
-      games:make(map[string]models.Game),
-  } 
+func NewGameManager() *GameManager {
+	return &GameManager{
+		games: make(map[string]models.Game),
+	}
 }
 
 func (gm *GameManager) GetGameUrlHandler(c *gin.Context) {
@@ -77,19 +76,23 @@ func (gm *GameManager) PlayerInGame(gameID string, userID string, x_pos int64, y
 	return nil
 }
 
+func (gm *GameManager) InitGameState(gameID string, ball models.BallState, players models.Player, canvas models.Canvas) error {
+	gm.gamesMu.Lock()
+	defer gm.gamesMu.Unlock()
 
-func (gm *GameManager) InitGameState(gameID string,ball models.BallState,players models.Player,canvas models.Canvas ) error {
-  gm.gamesMu.Lock()
-  defer gm.gamesMu.Unlock()
-  
-  game,ok:= gm.games[gameID]
-  if !ok{
-    return fmt.Errorf("geme not found")
-  }
-  game.State.Ball = ball
-  game.State.Canvas = canvas
-  
-  gm.games[gameID] = game
+	game, ok := gm.games[gameID]
+	if !ok {
+		return fmt.Errorf("geme not found")
+	}
+	game.State.Ball = ball
+	game.State.Canvas = canvas
 
-  return nil
+	gm.games[gameID] = game
+
+	return nil
+}
+
+func (gm *GameManager) UpdateGame(input models.WsEvent[models.InputEvent]) error {
+
+	return nil
 }

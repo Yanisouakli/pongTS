@@ -15,7 +15,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func WebsocketHandler(hub *Hub, c *gin.Context,gm *handlers.GameManager) {
+func WebsocketHandler(hub *Hub, c *gin.Context, gm *handlers.GameManager) {
 	id := c.Query("id")
 
 	if id == "" {
@@ -30,9 +30,9 @@ func WebsocketHandler(hub *Hub, c *gin.Context,gm *handlers.GameManager) {
 	client := &Client{
 		Hub:    hub,
 		Conn:   conn,
-		Send:   make(chan []byte, 256), 
+		Send:   make(chan []byte, 256),
 		UserID: id,
-    Gm:  gm,
+		Gm:     gm,
 	}
 
 	hub.Clients[id] = client
