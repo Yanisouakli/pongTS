@@ -2,13 +2,12 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
 	"pongServer/internal/models"
 	"sync"
 	"time"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type GameManager struct {
@@ -24,7 +23,7 @@ func NewGameManager() *GameManager {
 
 func (gm *GameManager) GetGameUrlHandler(c *gin.Context) {
 	GameID := uuid.New().String()
-	players := make([]models.Player, 2)
+	players := make([]models.Player, 1)
 
 	gm.gamesMu.Lock()
 
@@ -81,7 +80,10 @@ func (gm *GameManager) PlayerInGame(gameID string, userID string, x_pos int64, y
 	return nil
 }
 
-func (gm *GameManager) InitGameState(gameID string, ball models.BallState, players models.Player, canvas models.Canvas) error {
+
+
+
+func (gm *GameManager) InitGameState(gameID string,player models.Player, ball models.BallState, canvas models.Canvas) error {
 	gm.gamesMu.Lock()
 	defer gm.gamesMu.Unlock()
 
@@ -89,6 +91,25 @@ func (gm *GameManager) InitGameState(gameID string, ball models.BallState, playe
 	if !ok {
 		return fmt.Errorf("geme not found")
 	}
+
+	for _, p := range game.Players {
+		if p.PlayerID == player.PlayerID {
+			return nil
+		}
+	}
+
+	newPlayer := models.Player{
+		PlayerID:  player.PlayerID,
+		XPos:      player.XPos,
+		YPos:      player.YPos,
+		Direction: "stop",
+		VelocityY: 0,
+		Width:     20,
+		Height:    100,
+	}
+
+
+	game.Players = append(game.Players, newPlayer)
 	game.State.Ball = ball
 	game.State.Canvas = canvas
 
@@ -113,7 +134,6 @@ func (gm *GameManager) UpdateGame(input models.WsEvent[models.InputEvent]) error
 		if game.Players[i].PlayerID == input.Params.PlayerID {
 			p := &game.Players[i]
 
-			// Direction from key
 			switch input.Params.Key {
 			case "up", "z":
 				p.Direction = "up"
@@ -123,7 +143,6 @@ func (gm *GameManager) UpdateGame(input models.WsEvent[models.InputEvent]) error
 				p.Direction = "stop"
 			}
 
-			// Move with bounds
 			p.PreviousY = p.YPos
 			if p.Direction == "up" && p.YPos > 0 {
 				if p.YPos-speed < 0 {
@@ -139,12 +158,18 @@ func (gm *GameManager) UpdateGame(input models.WsEvent[models.InputEvent]) error
 				}
 			}
 
-			// Velocity
 			p.VelocityY = (p.YPos - p.PreviousY) * 10
 
 			gm.games[input.Params.GameID] = game
 			return nil
 		}
+	}
+
+	game.State.Ball.XPos = game.State.Ball.VelocityX * 16 * int64(time.Millisecond)
+	game.State.Ball.YPos = game.State.Ball.VelocityY * 16 * int64(time.Millisecond)
+
+	if game.State.Ball.YPos <= 0 || game.State.Ball.YPos+game.State.Ball.Height >= game.State.Canvas.CanvasHeight {
+		game.State.Ball.VelocityY *= -1
 	}
 
 	return fmt.Errorf("player not found")

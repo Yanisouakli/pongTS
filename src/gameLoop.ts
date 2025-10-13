@@ -8,8 +8,8 @@ export function startGameLoop(canvas: HTMLCanvasElement) {
   if (!ctx) throw new Error("canvas not supported");
 
   const ball = new Ball(canvas);
-  const gameID = localStorage.getItem("game_id")  as string
-  if(!gameID){
+  const gameID = localStorage.getItem("game_id") as string
+  if (!gameID) {
     console.error("[game_id] NOT FOUND")
   }
   let lastTime = 0;
@@ -18,36 +18,47 @@ export function startGameLoop(canvas: HTMLCanvasElement) {
   const playerId = "player-1234";
   const ws = new WsConnection(`ws://localhost:8080/ws?id=${playerId}`);
 
-  const MyRacket = new Racket(false, canvas,ws);
-  const OpRacket = new Racket(true, canvas,ws);
+  const MyRacket = new Racket(false, canvas, ws);
+  const OpRacket = new Racket(true, canvas, ws);
 
   ws.onOpen(() => {
     console.log("connectionn established")
+
+    const playerID = crypto.randomUUID();
     ws.send({
       type: "init",
       params: {
         game_id: gameID,
         player_init: {
-          player_id: "string-id",
+          player_id: playerID,
           score: 0,
           x_pos: MyRacket.x,
           y_pos: MyRacket.y,
         },
-        canvas:{
+        canvas: {
           canvas_width: canvas.width,
           canvas_height: canvas.height,
+        },
+        ball: {
+          x_pos:ball.x,
+          y_pos:ball.y,
+          height:ball.height,
+          width:ball.width,
+          velocity_y: ball.velocityY,
+          velocity_x: ball.velocityX,
+          radius:10,
         }
       },
     });
   })
 
-  ws.onMessage((msg)=>{
+  ws.onMessage((msg) => {
     if (msg.type === "succes-handshake") {
-      console.log("succes handshalke")
+      localStorage.setItem("player_id", msg.params.player_id)
       ws.send({
-        type:"ack-start-game",
+        type: "ack-start-game",
         params: {
-         no_params:"none"
+          no_params: "none"
         }
       })
     }
@@ -62,7 +73,7 @@ export function startGameLoop(canvas: HTMLCanvasElement) {
     MyRacket.move(canvas);
     MyRacket.draw(ctx!!);
     OpRacket.draw(ctx!!);
-    
+
 
 
     if (time >= pausedUntil) {

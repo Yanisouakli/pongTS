@@ -2,13 +2,12 @@ package websocket
 
 import (
 	"encoding/json"
+	"github.com/gorilla/websocket"
 	"log"
 	"pongServer/internal/handlers"
 	"pongServer/internal/models"
-	"pongServer/internal/services"
+	"pongServer/internal/utils"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 type Client struct {
@@ -70,14 +69,15 @@ func (c *Client) Read() {
 				}
 
 				jsonErrorHandshake, _ := json.Marshal(errorHandshake)
-				if err := services.CheckConnectedUser(initEvent.Params.GameID, initEvent.Params.PlayerInit.PlayerID, initEvent.Params.PlayerInit.XPos, initEvent.Params.PlayerInit.YPos, c.Gm); err != nil {
+				if err := c.Gm.InitGameState(initEvent.Params.GameID, initEvent.Params.PlayerInit, initEvent.Params.BallInit, initEvent.Params.CanvasInit); err != nil {
 					log.Printf("error while joining the game %v", err)
 					c.Send <- jsonErrorHandshake
 				}
 				succesHandshake := models.WsEvent[models.SuccesInitEvent]{
 					Type: "succes-handshake",
 					Params: models.SuccesInitEvent{
-						Message: "succes handshake",
+						Message:  "succes handshake",
+						PlayerID: initEvent.Params.PlayerInit.PlayerID,
 					},
 				}
 
@@ -98,14 +98,67 @@ func (c *Client) Read() {
 		case "ack-start-game":
 			if c.Ticker == nil {
 				c.Ticker = time.NewTicker(16 * time.Millisecond)
-
 				go func() {
 					for range c.Ticker.C {
 						game, ok := c.Gm.GetGame(c.GameID)
 						if !ok {
-							log.Printf("error while getting the game data %v", err)
+							log.Printf("game not found for ID: %s", c.GameID)
 							continue
 						}
+
+						game.State.Ball.XPos = game.State.Ball.XPos + game.State.Ball.VelocityX
+						game.State.Ball.YPos = game.State.Ball.YPos + game.State.Ball.VelocityY
+
+						if game.State.Ball.YPos <= 0 || game.State.Ball.YPos+game.State.Ball.Height >= game.State.Canvas.CanvasHeight {
+							game.State.Ball.VelocityY = game.State.Ball.VelocityY * -1
+						}
+
+						for i := range game.Players {
+							if utils.CollisionWithRacket(game.State.Ball, game.Players[i]) {
+								game.State.Ball.VelocityX = game.State.Ball.VelocityX * -1
+
+								game.State.Ball.VelocityY += game.Players[i].VelocityY / 10
+
+								speedIncrease := float64(1.05)
+								game.State.Ball.VelocityX = int64(float64(game.State.Ball.VelocityX) * speedIncrease)
+								game.State.Ball.VelocityY = int64(float64(game.State.Ball.VelocityY) * speedIncrease)
+
+								break
+							}
+						}
+
+						goalResult := utils.GoalHandler(game.State.Ball, game.State.Canvas)
+						if goalResult.Goal {
+							if goalResult.Player == utils.PlayerMe {
+								game.State.Score++ 
+							} else if goalResult.Player == utils.PlayerOpp {
+								game.State.Score-- 
+							}
+
+							game.State.Ball.XPos = game.State.Canvas.CanvasWidth / 2
+							game.State.Ball.YPos = game.State.Canvas.CanvasHeight / 2
+
+							game.State.Ball.VelocityX = -game.State.Ball.VelocityX
+							if game.State.Ball.VelocityX > 0 {
+								game.State.Ball.VelocityX = 5
+							} else {
+								game.State.Ball.VelocityX = -5
+							}
+							game.State.Ball.VelocityY = 0
+
+							goalEvent := models.WsEvent[models.GoalEvent]{
+								Type: "goal",
+								Params: models.GoalEvent{
+									Player: string(goalResult.Player),
+									Score:  game.State.Score,
+								},
+							}
+							jsonGoal, _ := json.Marshal(goalEvent)
+							c.Send <- jsonGoal
+						}
+
+						c.Gm.SetGame(c.GameID, game)
+
 						UpdatesBody := models.UpdatesBody{
 							Type:    "updates",
 							Players: game.Players,
@@ -114,7 +167,7 @@ func (c *Client) Read() {
 							Timer:   game.State.Timer,
 							Canvas:  game.State.Canvas,
 						}
-						jsonUpdate, err := json.MarshalIndent(UpdatesBody, "", " ")
+						jsonUpdate, err := json.Marshal(UpdatesBody)
 						if err != nil {
 							log.Printf("error while marshalling json %v", err)
 							continue
@@ -125,7 +178,6 @@ func (c *Client) Read() {
 			}
 
 		case "input":
-			//acccepts input and updates gameState
 			var InputEvent models.WsEvent[models.InputEvent]
 
 			err := json.Unmarshal(msg, &InputEvent)
