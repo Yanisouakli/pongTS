@@ -80,10 +80,7 @@ func (gm *GameManager) PlayerInGame(gameID string, userID string, x_pos int64, y
 	return nil
 }
 
-
-
-
-func (gm *GameManager) InitGameState(gameID string,player models.Player, ball models.BallState, canvas models.Canvas) error {
+func (gm *GameManager) InitGameState(gameID string, player models.Player, ball models.BallState, canvas models.Canvas) error {
 	gm.gamesMu.Lock()
 	defer gm.gamesMu.Unlock()
 
@@ -108,7 +105,6 @@ func (gm *GameManager) InitGameState(gameID string,player models.Player, ball mo
 		Height:    100,
 	}
 
-
 	game.Players = append(game.Players, newPlayer)
 	game.State.Ball = ball
 	game.State.Canvas = canvas
@@ -121,57 +117,25 @@ func (gm *GameManager) InitGameState(gameID string,player models.Player, ball mo
 func (gm *GameManager) UpdateGame(input models.WsEvent[models.InputEvent]) error {
 	gm.gamesMu.Lock()
 	defer gm.gamesMu.Unlock()
-
 	game, ok := gm.games[input.Params.GameID]
 	if !ok {
 		return fmt.Errorf("game not found")
 	}
 
-	speed := int64(20)
-	canvasH := game.State.Canvas.CanvasHeight
-
 	for i := range game.Players {
 		if game.Players[i].PlayerID == input.Params.PlayerID {
-			p := &game.Players[i]
-
 			switch input.Params.Key {
 			case "up", "z":
-				p.Direction = "up"
+				game.Players[i].Direction = "up"
 			case "down", "s":
-				p.Direction = "down"
+				game.Players[i].Direction = "down"
 			case "stop", "none", "":
-				p.Direction = "stop"
+				game.Players[i].Direction = "stop"
 			}
-
-			p.PreviousY = p.YPos
-			if p.Direction == "up" && p.YPos > 0 {
-				if p.YPos-speed < 0 {
-					p.YPos = 0
-				} else {
-					p.YPos -= speed
-				}
-			} else if p.Direction == "down" && p.YPos+p.Height < canvasH {
-				if p.YPos+p.Height+speed > canvasH {
-					p.YPos = canvasH - p.Height
-				} else {
-					p.YPos += speed
-				}
-			}
-
-			p.VelocityY = (p.YPos - p.PreviousY) * 10
-
 			gm.games[input.Params.GameID] = game
 			return nil
 		}
 	}
-
-	game.State.Ball.XPos = game.State.Ball.VelocityX * 16 * int64(time.Millisecond)
-	game.State.Ball.YPos = game.State.Ball.VelocityY * 16 * int64(time.Millisecond)
-
-	if game.State.Ball.YPos <= 0 || game.State.Ball.YPos+game.State.Ball.Height >= game.State.Canvas.CanvasHeight {
-		game.State.Ball.VelocityY *= -1
-	}
-
 	return fmt.Errorf("player not found")
 }
 

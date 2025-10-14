@@ -106,6 +106,27 @@ func (c *Client) Read() {
 							continue
 						}
 
+						//update racket position
+						speed := int64(20)
+						for i := range game.Players {
+							game.Players[i].PreviousY = game.Players[i].YPos
+
+							if game.Players[i].Direction == "up" && game.Players[i].YPos > 0 {
+								if game.Players[i].YPos-speed < 0 {
+									game.Players[i].YPos = 0
+								} else {
+									game.Players[i].YPos -= speed
+								}
+							} else if game.Players[i].Direction == "down" && game.Players[i].YPos+game.Players[i].Height < game.State.Canvas.CanvasHeight {
+								if game.Players[i].YPos+game.Players[i].Height+speed > game.State.Canvas.CanvasHeight {
+									game.Players[i].YPos = game.State.Canvas.CanvasHeight - game.Players[i].Height
+								} else {
+									game.Players[i].YPos += speed
+								}
+							}
+							game.Players[i].VelocityY = (game.Players[i].YPos - game.Players[i].PreviousY) * 10
+						}
+
 						game.State.Ball.XPos = game.State.Ball.XPos + game.State.Ball.VelocityX
 						game.State.Ball.YPos = game.State.Ball.YPos + game.State.Ball.VelocityY
 
@@ -130,9 +151,9 @@ func (c *Client) Read() {
 						goalResult := utils.GoalHandler(game.State.Ball, game.State.Canvas)
 						if goalResult.Goal {
 							if goalResult.Player == utils.PlayerMe {
-								game.State.Score++ 
+								game.State.Score++
 							} else if goalResult.Player == utils.PlayerOpp {
-								game.State.Score-- 
+								game.State.Score--
 							}
 
 							game.State.Ball.XPos = game.State.Canvas.CanvasWidth / 2

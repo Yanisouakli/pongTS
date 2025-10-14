@@ -98,9 +98,6 @@ type UpdatesBody struct {
 	Canvas  Canvas        `json:"canvas"`
 }
 
-
-
-
 type GoalEvent struct {
 	Player string `json:"player"`
 	Score  int64  `json:"score"`
