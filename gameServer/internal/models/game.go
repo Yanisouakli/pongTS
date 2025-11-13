@@ -8,19 +8,31 @@ type ConnectedEvent struct {
 }
 
 type Player struct {
-	PlayerID string `json:"player_id"`
-	Score    int64  `json:"score"`
-	XPos     int64  `json:"x_pos"`
-	YPos     int64  `json:"y_pos"`
+	PlayerID  string `json:"player_id"`
+	XPos      int64  `json:"x_pos"`
+	YPos      int64  `json:"y_pos"`
+	Direction string `json:"direction"`
+	PreviousY int64  `json:"previous_y"`
+	VelocityY int64  `json:"velocity_y"`
+	Width     int64  `json:"width"`
+	Height    int64  `json:"height"`
 }
 
 type BallState struct {
-	XPos int64 `json:"x_pos"`
-	YPos int64 `json:"y_pos"`
+	XPos      int64 `json:"x_pos"`
+	YPos      int64 `json:"y_pos"`
+	Height    int64 `json:"height"`
+	Width     int64 `json:"width"`
+	VelocityY int64 `json:"velocity_y"`
+	VelocityX int64 `json:"velocity_x"`
+	Radius    int64 `json:"radius"`
 }
 
 type GameState struct {
-	Ball BallState `json:"ball"`
+	Ball   BallState     `json:"ball"`
+	Score  int64         `json:"score"`
+	Timer  time.Duration `json:"timer"`
+	Canvas Canvas        `json:"canvas"`
 }
 
 type Game struct {
@@ -35,14 +47,28 @@ type LeftEvent struct {
 	GameID string `json:"game_id"`
 }
 
+type Canvas struct {
+	CanvasWidth  int64 `json:"canvas_width"`
+	CanvasHeight int64 `json:"canvas_height"`
+}
+
 type InitEvent struct {
 	GameID     string    `json:"game_id"`
 	PlayerInit Player    `json:"player_init"`
-	BallInit   BallState `json:"ball_init"`
+	CanvasInit Canvas    `json:"canvas"`
+	BallInit   BallState `json:"ball"`
+}
+
+type StartEvent struct {
+	GameID     string    `json:"game_id"`
+	PlayerInit Player    `json:"player_init"`
+	CanvasInit Canvas    `json:"canvas"`
+	Ball       BallState `json:"ball"`
 }
 
 type SuccesInitEvent struct {
-	Message string `json:"message"`
+	Message  string `json:"message"`
+	PlayerID string `json:"player_id"`
 }
 type ErrorEvent struct {
 	Error string `json:"error"`
@@ -51,4 +77,28 @@ type ErrorEvent struct {
 type WsEvent[T any] struct {
 	Type   string `json:"type"`
 	Params T      `json:"params"`
+}
+type InputEvent struct {
+	GameID   string `json:"game_id"`
+	PlayerID string `json:"player_id"`
+	Key      string `json:"key"`
+}
+
+type GoalReturn struct {
+	Goal   bool   `json:"goal"`
+	Player string `json:"player"`
+}
+
+type UpdatesBody struct {
+	Type    string        `json:"type"`
+	Players []Player      `json:"players"`
+	Ball    BallState     `json:"ball"`
+	Score   int64         `json:"score"`
+	Timer   time.Duration `json:"timer"`
+	Canvas  Canvas        `json:"canvas"`
+}
+
+type GoalEvent struct {
+	Player string `json:"player"`
+	Score  int64  `json:"score"`
 }

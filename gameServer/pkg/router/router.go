@@ -22,10 +22,11 @@ func SetupRouter() *gin.Engine {
 	}))
 
 
-  router.GET("/generate_game_url", handlers.GetGameUrlHandler)
+  GameManager :=  handlers.NewGameManager()
+  router.GET("/generate_game_url", GameManager.GetGameUrlHandler)
 
   router.GET("/ws",func(c *gin.Context){
-    websocket.WebsocketHandler(hub,c)
+    websocket.WebsocketHandler(hub,c,GameManager)
   })
 
   return router

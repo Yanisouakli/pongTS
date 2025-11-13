@@ -8,11 +8,11 @@ import (
 )
 
 type Hub struct {
-	Clients    map[string]*Client // map of connected clients
-	Broadcast  chan []byte        // channel for broadcasting messages to clients
-	Register   chan *Client       // channel for registering new clients
-	Unregister chan *Client       // channel for unregistering clients
-	mu         sync.RWMutex       // mutex for synchronizing access to the Clients map
+	Clients    map[string]*Client
+	Broadcast  chan []byte
+	Register   chan *Client
+	Unregister chan *Client
+	mu         sync.RWMutex
 }
 
 func NewHub() *Hub {

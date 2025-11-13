@@ -3,6 +3,7 @@ package websocket
 import (
 	"log"
 	"net/http"
+	"pongServer/internal/handlers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -14,7 +15,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func WebsocketHandler(hub *Hub, c *gin.Context) {
+func WebsocketHandler(hub *Hub, c *gin.Context, gm *handlers.GameManager) {
 	id := c.Query("id")
 
 	if id == "" {
@@ -29,8 +30,9 @@ func WebsocketHandler(hub *Hub, c *gin.Context) {
 	client := &Client{
 		Hub:    hub,
 		Conn:   conn,
-		Send:   make(chan []byte, 256), // buffered channel for outgoing msgs
+		Send:   make(chan []byte, 256),
 		UserID: id,
+		Gm:     gm,
 	}
 
 	hub.Clients[id] = client
